@@ -156,3 +156,49 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ secrets.CR_USER }}
           TOKEN: ${{ secrets.CR_PAT }}
+
+  PublishiOSBinding:
+    # needs: [Checks, UnitTest, GenerateAndroidBinding, GenerateiOSBinding]
+    # if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Generate Binding
+        run: |
+          echo $PATH
+          echo ${{ github.workspace }}
+          echo ${GOPATH}
+          echo ${GOROOT}
+          export PATH=$PATH:$GOPATH/bin
+          echo $PATH
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          gomobile init
+          make generate-ios-bindings
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: /Users/runner/work/wallet-sdk/go
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ios-binding
+          path: ./cmd/wallet-sdk-gomobile/bindings/ios
+      - name: Copy and zip iOS framework to root folder
+        run: |
+          cd ./cmd/wallet-sdk-gomobile/bindings/ios
+          zip -r walletsdk.xcframework.zip walletsdk.xcframework
+          ls -lrt 
+      - name: Publish to CocoaPod register
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+        run: |
+          source ci/version_var.sh
+          export PODSPEC_VERSION=$PODSPEC_VERSION
+          pod trunk push TestWalletSDK.podspec --skip-import-validation --allow-warnings
