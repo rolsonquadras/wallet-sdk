@@ -223,7 +223,7 @@ jobs:
           script: adb reverse tcp:8075 tcp:8075 && make integration-test-flutter
 
   GenerateVersion:
-    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.repository == 'rolsonquadras/wallet-sdk' && github.ref == 'refs/heads/main')
     needs: [ Checks, UnitTest, SDKIntegrationTest]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
@@ -255,7 +255,7 @@ jobs:
         run: echo "version=${{ steps.bump_version.outputs.next-version }}" >> $GITHUB_OUTPUT
 
   PublishIosSDKSnapshot:
-    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.repository == 'rolsonquadras/wallet-sdk' && github.ref == 'refs/heads/main')
     needs: GenerateVersion
     runs-on: macos-latest
     timeout-minutes: 10
@@ -276,7 +276,7 @@ jobs:
       - name: Derive the new version
         run: |
           echo "new version"
-          NEW_VER=v${{ needs.GenerateVersion.outputs.version }}-SNAPSHOT-$(git rev-parse --short=7 HEAD)
+          NEW_VER=${{ needs.GenerateVersion.outputs.version }}-SNAPSHOT-$(git rev-parse --short=7 HEAD)
           echo "NEW_VERSION=$NEW_VER" >> $GITHUB_ENV
           echo $NEW_VER
       - name: Generate Binding
@@ -334,7 +334,7 @@ jobs:
         with:
           draft: false
           tag_name : ${{ env.NEW_VERSION }}
-          repository : trustbloc-cicd/wallet-sdk
+          repository : rolsonquadras/wallet-sdk-test
           files: |
             ios/walletsdk.xcframework.zip
         env:
@@ -342,7 +342,7 @@ jobs:
 
   PublishAndroidSDKSnapshot:
     needs: GenerateVersion
-    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.repository == 'rolsonquadras/wallet-sdk' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -357,7 +357,7 @@ jobs:
       - name: Derive the new version
         run: |
           echo "new version"
-          NEW_VER=v${{ needs.GenerateVersion.outputs.version }}-SNAPSHOT-$(git rev-parse --short=7 HEAD)
+          NEW_VER=${{ needs.GenerateVersion.outputs.version }}-SNAPSHOT-$(git rev-parse --short=7 HEAD)
           echo "NEW_VERSION=$NEW_VER" >> $GITHUB_ENV
           echo $NEW_VER
       - name: Generate Binding
