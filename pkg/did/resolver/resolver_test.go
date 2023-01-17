@@ -11,7 +11,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/hyperledger/aries-framework-go-ext/component/vdr/jwk"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/stretchr/testify/require"
+
 	"github.com/trustbloc/wallet-sdk/pkg/did/resolver"
 )
 
@@ -29,6 +32,23 @@ func TestDIDResolver(t *testing.T) {
 		require.NoError(t, err)
 
 		didDocResolution, err := didResolver.Resolve("did:key:z6MkjfbzWitsSUyFMTbBUSWNsJBHR7BefFp1WmABE3kRw8Qr")
+		require.NoError(t, err)
+		require.NotEmpty(t, didDocResolution)
+	})
+
+	t.Run("did jwk", func(t *testing.T) {
+		vdr := jwk.New()
+		didDoc, err := vdr.Create(&did.Doc{VerificationMethod: []did.VerificationMethod{},
+			AssertionMethod: []did.Verification{{
+				Relationship: did.AssertionMethod,
+				Embedded:     true,
+			}}})
+		require.NoError(t, err)
+
+		didResolver, err := resolver.NewDIDResolver("")
+		require.NoError(t, err)
+
+		didDocResolution, err := didResolver.Resolve(didDoc.DIDDocument.ID)
 		require.NoError(t, err)
 		require.NotEmpty(t, didDocResolution)
 	})
