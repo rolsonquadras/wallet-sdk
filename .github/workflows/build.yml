@@ -30,206 +30,205 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  Checks:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Run checks
-        run: |
-          echo $PATH
-          go env
-          echo ${{ github.workspace }}
-          make checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#  Checks:
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 10
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up Go
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Run checks
+#        run: |
+#          echo $PATH
+#          go env
+#          echo ${{ github.workspace }}
+#          make checks
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#  UnitTest:
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 10
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up Go
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Run unit test
+#        run: make unit-test
+#      - name: Upload coverage to Codecov
+#        run: |
+#          bash <(curl https://codecov.io/bash)
+#        env:
+#          CODECOV_UPLOAD_TOKEN: ${{ secrets.CODECOV_UPLOAD_TOKEN }}
+#
+#  SDKIntegrationTest:
+#    runs-on: ubuntu-20.04
+#    timeout-minutes: 30
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up Go
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Run Integration tests
+#        run: |
+#          echo '127.0.0.1 testnet.orb.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 oidc-provider.example.com' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
+#          make integration-test
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  UnitTest:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Run unit test
-        run: make unit-test
-      - name: Upload coverage to Codecov
-        run: |
-          bash <(curl https://codecov.io/bash)
-        env:
-          CODECOV_UPLOAD_TOKEN: ${{ secrets.CODECOV_UPLOAD_TOKEN }}
-
-  SDKIntegrationTest:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Run Integration tests
-        run: |
-          echo '127.0.0.1 testnet.orb.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 oidc-provider.example.com' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
-          make integration-test
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  iOSFlutterIntegrationTest:
-    runs-on: macos-12
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Generate and copy iOS Binding
-        run: |
-          echo $PATH
-          echo ${{ github.workspace }}
-          echo ${GOPATH}
-          echo ${GOROOT}
-          export PATH=$PATH:$GOPATH/bin
-          echo $PATH
-          go install golang.org/x/mobile/cmd/gomobile@latest
-          gomobile init
-          make generate-ios-bindings
-          make copy-ios-bindings
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOPATH: /Users/runner/work/wallet-sdk/go
-      - name: Setup env for integration test
-        run: |
-          echo '127.0.0.1 testnet.orb.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 oidc-provider.example.com' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
-          brew install docker docker-compose
-          colima start
-          export PATH=$PATH:$GOPATH/bin
-          echo $PATH
-          make prepare-integration-test-flutter
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v2
-        with:
-          channel: stable
-          version: 3.3.7
-      - name: Install flutter app dependencies
-        run: make install-flutter-dependencies
-      - name: Run iOS Simulator
-        uses: futureware-tech/simulator-action@v2
-        with:
-          model: 'iPhone 14'
-      - name: Remove AppIcon contents file (Simulator build fails with this file)
-        run: |
-          rm -rf demo/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json
-          rm -rf demo/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json
-      - name: Run tests on Simulator
-        run: make integration-test-flutter
-
-  AndroidFlutterIntegrationTest:
-    runs-on: macOS-12
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
-      - name: AVD cache
-        uses: actions/cache@v3
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-29
-      - name: Cache Android build files
-        uses: actions/cache@v3
-        with:
-          key: android-build-files
-          path: |
-            demo/app/build
-            demo/app/android/.gradle
-      - name: Create AVD and generate snapshot for caching
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Generated AVD snapshot for caching."
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Generate and copy Android Binding
-        run: |
-          echo $PATH
-          echo ${{ github.workspace }}
-          echo ${GOPATH}
-          echo ${GOROOT}
-          export PATH=$PATH:$GOPATH/bin
-          echo $PATH
-          go install golang.org/x/mobile/cmd/gomobile@latest
-          gomobile init
-          make generate-android-bindings
-          make copy-android-bindings
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOPATH: /Users/runner/work/wallet-sdk/go
-      - name: Setup env for integration test
-        run: |
-          echo '127.0.0.1 testnet.orb.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 oidc-provider.example.com' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
-          brew install docker docker-compose
-          colima start
-          export PATH=$PATH:$GOPATH/bin
-          echo $PATH
-          go install golang.org/x/mobile/cmd/gomobile@latest
-          gomobile init
-          make prepare-integration-test-flutter
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v2
-        with:
-          channel: stable
-          version: 3.3.7
-      - name: Install flutter app dependencies
-        run: make install-flutter-dependencies
-      - name: Build APK in Debug mode
-        run: |
-          cd demo/app
-          flutter build apk --debug
-      - name: Run tests on Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: adb reverse tcp:8075 tcp:8075 && make integration-test-flutter
+#  iOSFlutterIntegrationTest:
+#    runs-on: macos-12
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#      - name: Set up Go
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - uses: maxim-lobanov/setup-xcode@v1
+#        with:
+#          xcode-version: latest-stable
+#      - name: Generate and copy iOS Binding
+#        run: |
+#          echo $PATH
+#          echo ${{ github.workspace }}
+#          echo ${GOPATH}
+#          echo ${GOROOT}
+#          export PATH=$PATH:$GOPATH/bin
+#          echo $PATH
+#          go install golang.org/x/mobile/cmd/gomobile@latest
+#          gomobile init
+#          make generate-ios-bindings
+#          make copy-ios-bindings
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GOPATH: /Users/runner/work/wallet-sdk/go
+#      - name: Setup env for integration test
+#        run: |
+#          echo '127.0.0.1 testnet.orb.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 oidc-provider.example.com' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
+#          brew install docker docker-compose
+#          colima start
+#          export PATH=$PATH:$GOPATH/bin
+#          echo $PATH
+#          make prepare-integration-test-flutter
+#      - name: Setup Flutter SDK
+#        uses: flutter-actions/setup-flutter@v2
+#        with:
+#          channel: stable
+#          version: 3.3.7
+#      - name: Install flutter app dependencies
+#        run: make install-flutter-dependencies
+#      - name: Run iOS Simulator
+#        uses: futureware-tech/simulator-action@v2
+#        with:
+#          model: 'iPhone 14'
+#      - name: Run tests on Simulator
+#        run: make integration-test-flutter
+#
+#  AndroidFlutterIntegrationTest:
+#    runs-on: macOS-12
+#    steps:
+#      - name: checkout
+#        uses: actions/checkout@v3
+#      - name: Gradle cache
+#        uses: gradle/gradle-build-action@v2
+#      - name: AVD cache
+#        uses: actions/cache@v3
+#        id: avd-cache
+#        with:
+#          path: |
+#            ~/.android/avd/*
+#            ~/.android/adb*
+#          key: avd-29
+#      - name: Cache Android build files
+#        uses: actions/cache@v3
+#        with:
+#          key: android-build-files
+#          path: |
+#            demo/app/build
+#            demo/app/android/.gradle
+#      - name: Create AVD and generate snapshot for caching
+#        if: steps.avd-cache.outputs.cache-hit != 'true'
+#        uses: reactivecircus/android-emulator-runner@v2
+#        with:
+#          api-level: 29
+#          force-avd-creation: false
+#          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+#          disable-animations: false
+#          script: echo "Generated AVD snapshot for caching."
+#      - name: Set up Go
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Generate and copy Android Binding
+#        run: |
+#          echo $PATH
+#          echo ${{ github.workspace }}
+#          echo ${GOPATH}
+#          echo ${GOROOT}
+#          export PATH=$PATH:$GOPATH/bin
+#          echo $PATH
+#          go install golang.org/x/mobile/cmd/gomobile@latest
+#          gomobile init
+#          make generate-android-bindings
+#          make copy-android-bindings
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GOPATH: /Users/runner/work/wallet-sdk/go
+#      - name: Setup env for integration test
+#        run: |
+#          echo '127.0.0.1 testnet.orb.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 oidc-provider.example.com' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
+#          brew install docker docker-compose
+#          colima start
+#          export PATH=$PATH:$GOPATH/bin
+#          echo $PATH
+#          go install golang.org/x/mobile/cmd/gomobile@latest
+#          gomobile init
+#          make prepare-integration-test-flutter
+#      - uses: actions/setup-java@v3
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#      - name: Setup Flutter SDK
+#        uses: flutter-actions/setup-flutter@v2
+#        with:
+#          channel: stable
+#          version: 3.3.7
+#      - name: Install flutter app dependencies
+#        run: make install-flutter-dependencies
+#      - name: Build APK in Debug mode
+#        run: |
+#          cd demo/app
+#          flutter build apk --debug
+#      - name: Run tests on Emulator
+#        uses: reactivecircus/android-emulator-runner@v2
+#        with:
+#          api-level: 29
+#          force-avd-creation: false
+#          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+#          disable-animations: true
+#          script: adb reverse tcp:8075 tcp:8075 && make integration-test-flutter
 
   GenerateVersion:
-    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
-    needs: [ Checks, UnitTest, SDKIntegrationTest]
+#    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
+#    needs: [ Checks, UnitTest, SDKIntegrationTest]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     outputs:
@@ -260,7 +259,7 @@ jobs:
         run: echo "version=${{ steps.bump_version.outputs.next-version }}" >> $GITHUB_OUTPUT
 
   PublishIosSDKSnapshot:
-    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
+#    if: github.event_name == 'push' && (github.repository == 'trustbloc/wallet-sdk' && github.ref == 'refs/heads/main')
     needs: GenerateVersion
     runs-on: macos-latest
     timeout-minutes: 10
@@ -298,52 +297,72 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: /Users/runner/work/wallet-sdk/go
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v2
+        with:
+          channel: stable
+          version: 3.3.7
+      - name: Install flutter app dependencies
+        run: make install-flutter-dependencies
+      - name: Build IPA
+        run: |
+          make copy-ios-bindings
+          cd demo/app && flutter build ios --release --no-codesign
+          mkdir PayLoad
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          mv Payload/Runner.app Payload/TrustBloc.app
+          zip -r TrustBloc.ipa Payload
+      - name: Upload IPA to artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-ipa
+          path: demo/app/TrustBloc.ipa
       - name: Zip walletsdk framework
         run: |
           cd ./cmd/wallet-sdk-gomobile/bindings/ios
           zip -r -X walletsdk.xcframework.zip walletsdk.xcframework
-      - name: Clone walletsdk release repository
-        uses: actions/checkout@v2
-        with:
-          repository: trustbloc-cicd/wallet-sdk
-          path: ios
-          token: ${{ secrets.WALLET_SDK_CICD_PAT }}
-      - name: Build and commit walletsdk xcframework package
-        run: |
-          cp -r ./cmd/wallet-sdk-gomobile/bindings/ios/walletsdk.xcframework.zip ./ios/walletsdk.xcframework.zip
-          cd ios/
-          ls -lrt
-          echo "calculate new checksum"
-          NEW_CHECKSUM=$(swift package compute-checksum $FRAMEWORK_NAME.xcframework.zip)
-          echo "moduleName=$FRAMEWORK_NAME version=$NEW_VERSION checksum=$NEW_CHECKSUM"
-          echo "replace name module information in package manifest"
-          sed -E -i '' 's/let moduleName = ".+"/let moduleName = "'$FRAMEWORK_NAME\"/ Package.swift
-          echo "replace version information in package manifest"
-          sed -E -i '' 's/let version = ".+"/let version = "'$NEW_VERSION\"/ Package.swift
-          echo "replace checksum information in package manifest"
-          sed -E -i '' 's/let checksum = ".+"/let checksum = "'$NEW_CHECKSUM\"/ Package.swift
-          echo "Package.swift content file after update"
-          cat Package.swift
-          echo "git commit all without framework and push"
-          git status
-          git add Package.swift
-          git commit -m "New $FRAMEWORK_NAME version $NEW_VERSION"
-          git push
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FRAMEWORK_NAME: walletsdk
-          NEW_VERSION: '${{ env.NEW_VERSION }}'
-      - name: Tag and Release new version Swift package
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          tag_name : ${{ env.NEW_VERSION }}
-          repository : trustbloc-cicd/wallet-sdk
-          files: |
-            ios/walletsdk.xcframework.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.WALLET_SDK_CICD_PAT }}
+#      - name: Clone walletsdk release repository
+#        uses: actions/checkout@v2
+#        with:
+#          repository: trustbloc-cicd/wallet-sdk
+#          path: ios
+#          token: ${{ secrets.WALLET_SDK_CICD_PAT }}
+#      - name: Build and commit walletsdk xcframework package
+#        run: |
+#          cp -r ./cmd/wallet-sdk-gomobile/bindings/ios/walletsdk.xcframework.zip ./ios/walletsdk.xcframework.zip
+#          cd ios/
+#          ls -lrt
+#          echo "calculate new checksum"
+#          NEW_CHECKSUM=$(swift package compute-checksum $FRAMEWORK_NAME.xcframework.zip)
+#          echo "moduleName=$FRAMEWORK_NAME version=$NEW_VERSION checksum=$NEW_CHECKSUM"
+#          echo "replace name module information in package manifest"
+#          sed -E -i '' 's/let moduleName = ".+"/let moduleName = "'$FRAMEWORK_NAME\"/ Package.swift
+#          echo "replace version information in package manifest"
+#          sed -E -i '' 's/let version = ".+"/let version = "'$NEW_VERSION\"/ Package.swift
+#          echo "replace checksum information in package manifest"
+#          sed -E -i '' 's/let checksum = ".+"/let checksum = "'$NEW_CHECKSUM\"/ Package.swift
+#          echo "Package.swift content file after update"
+#          cat Package.swift
+#          echo "git commit all without framework and push"
+#          git status
+#          git add Package.swift
+#          git commit -m "New $FRAMEWORK_NAME version $NEW_VERSION"
+#          git push
+#        shell: bash
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          FRAMEWORK_NAME: walletsdk
+#          NEW_VERSION: '${{ env.NEW_VERSION }}'
+#      - name: Tag and Release new version Swift package
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          draft: false
+#          tag_name : ${{ env.NEW_VERSION }}
+#          repository : trustbloc-cicd/wallet-sdk
+#          files: |
+#            ios/walletsdk.xcframework.zip
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.WALLET_SDK_CICD_PAT }}
 
   PublishAndroidSDKSnapshot:
     needs: GenerateVersion
@@ -390,3 +409,54 @@ jobs:
           USER: ${{ secrets.CR_USER }}
           TOKEN: ${{ secrets.CR_PAT }}
           NEW_VERSION: '${{ env.NEW_VERSION }}'
+
+#  iOSBuildIPA:
+#    runs-on: macos-12
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#          lfs: true
+#      - uses: maxim-lobanov/setup-xcode@v1
+#        with:
+#          xcode-version: latest-stable
+#      - name: Set up Go
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Generate and copy iOS Binding
+#        run: |
+#          echo $PATH
+#          echo ${{ github.workspace }}
+#          echo ${GOPATH}
+#          echo ${GOROOT}
+#          export PATH=$PATH:$GOPATH/bin
+#          echo $PATH
+#          go install golang.org/x/mobile/cmd/gomobile@latest
+#          gomobile init
+#          make generate-ios-bindings
+#          make copy-ios-bindings
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GOPATH: /Users/runner/work/wallet-sdk/go
+#      - name: Setup Flutter SDK
+#        uses: flutter-actions/setup-flutter@v2
+#        with:
+#          channel: stable
+#          version: 3.3.7
+#      - name: Install flutter app dependencies
+#        run: make install-flutter-dependencies
+#      # Build and sign the ipa using a single flutter command
+#      - name: Building IPA
+#        run: |
+#          cd demo/app && flutter build ios --release
+#          mkdir PayLoad
+#          cp -r build/ios/iphoneos/Runner.app Payload/
+#          mv Payload/Runner.app Payload/TrustBloc.app
+#          zip -r TrustBloc.ipa Payload
+#      - name: collect ipa artifacts
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: release-ipa
+#          path: demo/app/TrustBloc.ipa

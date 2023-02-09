@@ -1,0 +1,17 @@
+framework module "Walletsdk" {
+	header "ref.h"
+    header "Mem.objc.h"
+    header "Api.objc.h"
+    header "Vcparse.objc.h"
+    header "Credential.objc.h"
+    header "Did.objc.h"
+    header "Ld.objc.h"
+    header "Localkms.objc.h"
+    header "Openid4ci.objc.h"
+    header "Openid4vp.objc.h"
+    header "Walleterror.objc.h"
+    header "Universe.objc.h"
+    header "Walletsdk.h"
+
+    export *
+}
