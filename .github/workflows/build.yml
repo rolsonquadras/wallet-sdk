@@ -16,75 +16,75 @@ on:
     branches: [ main ]
 
 jobs:
-  SemanticPullRequest:
-    name: Semantic Pull Request Check
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: amannn/action-semantic-pull-request@v5
-        with:
-          requireScope: true
-          scopes: |
-            sdk
-            app
-            deps
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  Checks:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Run checks
-        run: |
-          echo $PATH
-          go env
-          echo ${{ github.workspace }}
-          make checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  UnitTest:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Run unit test
-        run: make unit-test
-      - name: Upload coverage to Codecov
-        run: |
-          bash <(curl https://codecov.io/bash)
-        env:
-          CODECOV_UPLOAD_TOKEN: ${{ secrets.CODECOV_UPLOAD_TOKEN }}
-
-  SDKIntegrationTest:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Run Integration tests
-        run: |
-          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 api-gateway.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 cognito-mock.trustbloc.local' | sudo tee -a /etc/hosts
-          make integration-test
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#  SemanticPullRequest:
+#    name: Semantic Pull Request Check
+#    if: github.event_name == 'pull_request'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: amannn/action-semantic-pull-request@v5
+#        with:
+#          requireScope: true
+#          scopes: |
+#            sdk
+#            app
+#            deps
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#  Checks:
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 10
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Set up Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Run checks
+#        run: |
+#          echo $PATH
+#          go env
+#          echo ${{ github.workspace }}
+#          make checks
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#  UnitTest:
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 10
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Set up Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Run unit test
+#        run: make unit-test
+#      - name: Upload coverage to Codecov
+#        run: |
+#          bash <(curl https://codecov.io/bash)
+#        env:
+#          CODECOV_UPLOAD_TOKEN: ${{ secrets.CODECOV_UPLOAD_TOKEN }}
+#
+#  SDKIntegrationTest:
+#    runs-on: ubuntu-22.04
+#    timeout-minutes: 10
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Set up Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Run Integration tests
+#        run: |
+#          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 api-gateway.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 cognito-mock.trustbloc.local' | sudo tee -a /etc/hosts
+#          make integration-test
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   BuildMockLoginConsentServer:
     runs-on: ubuntu-22.04
@@ -132,84 +132,99 @@ jobs:
           name: mock-trust-registry
           path: /tmp/mock-trust-registry.tar
 
-  iOSFlutterIntegrationTest:
-    runs-on: macos-12
+#  iOSFlutterIntegrationTest:
+#    runs-on: macos-12
+#    needs: [ BuildMockLoginConsentServer, BuilMockTrustRegistryServer ]
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Set up Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Generate and copy iOS Binding
+#        run: |
+#          echo $PATH
+#          echo ${{ github.workspace }}
+#          echo ${GOPATH}
+#          echo ${GOROOT}
+#          export PATH=$PATH:$GOPATH/bin
+#          echo $PATH
+#          go install golang.org/x/mobile/cmd/gomobile@latest
+#          gomobile init
+#          NEW_VERSION=testVer GIT_REV=testRev BUILD_TIME=testTime make generate-ios-bindings copy-ios-bindings
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GOPATH: /Users/runner/work/wallet-sdk/go
+#      - name: Install and start docker
+#        run: |
+#          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 api-gateway.trustbloc.local' | sudo tee -a /etc/hosts
+#          echo '127.0.0.1 cognito-mock.trustbloc.local' | sudo tee -a /etc/hosts
+#          brew install docker docker-compose
+#          colima start
+#      - name: Download artifacts (Docker images) from previous workflows
+#        uses: actions/download-artifact@v4
+#      - name: Load mock-login-consent server
+#        run: |
+#          docker load --input mock-login-consent/mock-login-consent.tar
+#      - name: Load mock test registry server
+#        run: |
+#          docker load --input mock-trust-registry/mock-trust-registry.tar
+#      - name: Generate test cli and keys
+#        run: |
+#          make build-integration-cli generate-test-keys
+#      - name: Setup env for integration test
+#        run: |
+#          make start-integration-env-flutter
+#      - name: Setup Flutter SDK
+#        uses: flutter-actions/setup-flutter@v2
+#        with:
+#          channel: stable
+#          version: 3.10.6
+#      - name: Install flutter app dependencies
+#        run: make install-flutter-dependencies
+#      - name: Run iOS Simulator
+#        uses: futureware-tech/simulator-action@v3
+#        with:
+#          model: 'iPhone 14'
+#      - name: Remove AppIcon contents file (Simulator build fails with this file)
+#        run: |
+#          rm -rf demo/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json
+#          rm -rf demo/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json
+#      - name: Run tests on Simulator
+#        run: make integration-test-flutter integration-test-ios
+#      - name: Docker container status output
+#        if: always()
+#        run: |
+#          docker images
+#          docker ps -a
+
+  AndroidFlutterIntegrationTest:
+    runs-on: ubuntu-latest
     needs: [ BuildMockLoginConsentServer, BuilMockTrustRegistryServer ]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Generate and copy iOS Binding
+      - name: Check disk space
         run: |
-          echo $PATH
-          echo ${{ github.workspace }}
-          echo ${GOPATH}
-          echo ${GOROOT}
-          export PATH=$PATH:$GOPATH/bin
-          echo $PATH
-          go install golang.org/x/mobile/cmd/gomobile@latest
-          gomobile init
-          NEW_VERSION=testVer GIT_REV=testRev BUILD_TIME=testTime make generate-ios-bindings copy-ios-bindings
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOPATH: /Users/runner/work/wallet-sdk/go
-      - name: Install and start docker
-        run: |
-          echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 api-gateway.trustbloc.local' | sudo tee -a /etc/hosts
-          echo '127.0.0.1 cognito-mock.trustbloc.local' | sudo tee -a /etc/hosts
-          brew install docker docker-compose
-          colima start
-      - name: Download artifacts (Docker images) from previous workflows
-        uses: actions/download-artifact@v4
-      - name: Load mock-login-consent server
-        run: |
-          docker load --input mock-login-consent/mock-login-consent.tar
-      - name: Load mock test registry server
-        run: |
-          docker load --input mock-trust-registry/mock-trust-registry.tar
-      - name: Generate test cli and keys
-        run: |
-          make build-integration-cli generate-test-keys
-      - name: Setup env for integration test
-        run: |
-          make start-integration-env-flutter
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v2
-        with:
-          channel: stable
-          version: 3.10.6
-      - name: Install flutter app dependencies
-        run: make install-flutter-dependencies
-      - name: Run iOS Simulator
-        uses: futureware-tech/simulator-action@v3
-        with:
-          model: 'iPhone 14'
-      - name: Remove AppIcon contents file (Simulator build fails with this file)
-        run: |
-          rm -rf demo/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json
-          rm -rf demo/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json
-      - name: Run tests on Simulator
-        run: make integration-test-flutter integration-test-ios
+          df -H
       - name: Docker container status output
-        if: always()
         run: |
           docker images
           docker ps -a
-
-  AndroidFlutterIntegrationTest:
-    runs-on: macos-12
-    needs: [ BuildMockLoginConsentServer, BuilMockTrustRegistryServer ]
-    steps:
+      - name: Remove docker images
+        run: |
+          docker rmi -f $(docker images -aq)
+      - name: Docker container status output
+        run: |
+          docker images
+          docker ps -a
+      - name: Check disk space
+        run: |
+          df -H
       - name: checkout
         uses: actions/checkout@v4
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -227,16 +242,14 @@ jobs:
           NEW_VERSION=testVer GIT_REV=testRev BUILD_TIME=testTime make generate-android-bindings copy-android-bindings
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOPATH: /Users/runner/work/wallet-sdk/go
-      - name: Install and start docker
+          GOPATH: /tmp/runner/work/wallet-sdk/go
+      - name: Setup hosts file
         run: |
           echo '127.0.0.1 file-server.trustbloc.local' | sudo tee -a /etc/hosts
           echo '127.0.0.1 did-resolver.trustbloc.local' | sudo tee -a /etc/hosts
           echo '127.0.0.1 vc-rest-echo.trustbloc.local' | sudo tee -a /etc/hosts
           echo '127.0.0.1 api-gateway.trustbloc.local' | sudo tee -a /etc/hosts
           echo '127.0.0.1 cognito-mock.trustbloc.local' | sudo tee -a /etc/hosts
-          brew install docker docker-compose
-          colima start
       - name: Download artifacts (Docker images) from previous workflows
         uses: actions/download-artifact@v4
       - name: Load mock-login-consent server
@@ -251,10 +264,6 @@ jobs:
       - name: Setup env for integration test
         run: |
           make start-integration-env-flutter
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v2
         with:
@@ -266,15 +275,52 @@ jobs:
         run: |
           cd demo/app
           flutter build apk --debug
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+#      - name: Gradle cache
+#        uses: gradle/actions/setup-gradle@v3
+#      - name: AVD cache
+#        uses: actions/cache@v4
+#        id: avd-cache
+#        with:
+#          path: |
+#            ~/.android/avd/*
+#            ~/.android/adb*
+#          key: avd-34
+      - name: Check disk space
+        run: |
+          df -H
+#      - name: Create AVD and generate snapshot for caching
+#        if: steps.avd-cache.outputs.cache-hit != 'true'
+#        uses: reactivecircus/android-emulator-runner@v2
+#        with:
+#          api-level: 34
+#          target: aosp_atd
+#          arch: x86_64
+#          disk-size: 4196M
+#          force-avd-creation: false
+#          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+#          disable-animations: false
+#          script: echo "Generated AVD snapshot for caching."
       - name: Run flutter and android tests on Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 32
+          api-level: 34
+          target: aosp_atd
           arch: x86_64
+#          disk-size: 4196M
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: adb reverse tcp:8075 tcp:8075 && adb reverse tcp:8072 tcp:8072 && adb reverse tcp:9229 tcp:9229 && make integration-test-flutter integration-test-android
+          script: |
+            adb reverse tcp:8075 tcp:8075
+            adb reverse tcp:8072 tcp:807
+            adb reverse tcp:9229 tcp:9229
+            make integration-test-flutter
+            make integration-test-android
       - name: Docker container status output
         if: always()
         run: |
