@@ -298,11 +298,20 @@ func doPreAuthCodeFlowTest(t *testing.T) {
 
 			require.Contains(t, trustInfo.Domain, "trustbloc.local:8078")
 
+			var credentialOffers []*trustregistry.CredentialOffer
+
+			for _, offer := range trustInfo.CredentialOffers {
+				credentialOffers = append(credentialOffers, &trustregistry.CredentialOffer{
+					CredentialType:             offer.CredentialType,
+					CredentialFormat:           offer.CredentialFormat,
+					ClientAttestationRequested: false,
+				})
+			}
+
 			result, trustErr := trustRegistryAPI.EvaluateIssuance(&trustregistry.IssuanceRequest{
 				IssuerDID:        trustInfo.DID,
 				IssuerDomain:     trustInfo.Domain,
-				CredentialType:   trustInfo.CredentialType,
-				CredentialFormat: trustInfo.CredentialFormat,
+				CredentialOffers: credentialOffers,
 			})
 
 			require.NoError(t, trustErr)
