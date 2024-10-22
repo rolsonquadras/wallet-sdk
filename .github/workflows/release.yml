@@ -79,7 +79,6 @@ jobs:
           TOKEN: ${{ secrets.CR_PAT }}
 
   PublishIosSDKRelease:
-    needs: [ PublishAndroidSDKRelease ]
     runs-on: macos-latest
     timeout-minutes: 40
     permissions:
@@ -89,9 +88,6 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -111,6 +107,9 @@ jobs:
           NEW_VER=$(git describe --tags --always `git rev-list --tags --max-count=1`)
           echo "NEW_VERSION=$NEW_VER-swift-pm" >> $GITHUB_ENV
           echo $NEW_VER
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
       - name: Generate Binding
         run: |
           echo $PATH
